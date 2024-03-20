@@ -65,17 +65,29 @@ class LinkedList{
 
     // This method enables us to insert a value into the linked list
     insert(value, index){
-           if(index < this.size){
-            let currentIndex = 0;
-            let currentNode = this.firstNode; 
-            while(currentIndex < index - 1){
-                currentNode = currentNode.nextNode; 
-                currentIndex++;
-            }
+           if(index == this.size){
+                this.push(value);
+           }
+           else if(index == 0){
             const newNode = new ListNode(value);
-            newNode.nextNode = currentNode.nextNode;
-            currentNode.nextNode = newNode;
+            newNode.nextNode = this.firstNode; 
+            this.firstNode = newNode; 
             this.size++;
+            }
+             else if(index < this.size){
+                let currentIndex = 0;
+                let currentNode = this.firstNode; 
+                while(currentIndex < index - 1){
+                    currentNode = currentNode.nextNode; 
+                    currentIndex++;
+                }
+                const newNode = new ListNode(value);
+                newNode.nextNode = currentNode.nextNode;
+                currentNode.nextNode = newNode;
+                this.size++;
+             }
+           else{
+               throw new Error("Index not found");
            }
     }
     
@@ -134,3 +146,7 @@ class LinkedList{
         return this.size == 0;
     }
 }
+
+
+const list = new LinkedList(); 
+
