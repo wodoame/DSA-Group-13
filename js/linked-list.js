@@ -1,5 +1,5 @@
 // This class describes each node of the linked list
-class ListNode{
+export class ListNode{
     constructor(value){
         this.value = value;
         this.data = undefined; 
@@ -8,7 +8,7 @@ class ListNode{
 }
 
 // This is the linked list class which helps us to traverse through the nodes
-class LinkedList{
+export class LinkedList{
     constructor(){
         this.firstNode = undefined;
         this.size = 0; 
@@ -136,92 +136,4 @@ class LinkedList{
     isEmpty(){
         return this.size == 0;
     }
-}
-
-
-// main application
-const loadSettings = () => {
-    let settings = localStorage.getItem("app-settings")
-    return settings ? JSON.parse(settings): {
-        seatNumber: 1,
-        displayPassengers: false,  
-    };
-};
-
-const saveSettings = (settings) => {
-    localStorage.setItem('app-settings', JSON.stringify(settings));
-};
-
-const showPassengerList = (settings)=>{
-    return settings.displayPassengers || window.location.pathname.includes("display-passengers.html");
-};
-
-const getReservations = () => {
-    const reservations = localStorage.getItem('app-reservations');
-    return reservations ? JSON.parse(reservations): [];
-};
-// NOTE: app settings have already been parsed on each page reload and is ready to be used
-let appSettings = loadSettings();
-let seatNumber = appSettings.seatNumber; // get the current available seat number from the app settings
-const reservationTemplate = {};
-
-
-
-const pushDetails = () => {
-    const name = document.getElementById("name").value; // gets the value of the input field with name 'id'
-    const phone = document.getElementById("phone-number").value;
-    const email = document.getElementById("email-address").value; 
-    const dateOfBirth = document.getElementById("date-of-birth").value;
-    const reservations = [];
-    // console.log(name, phone, email);
-
-    const reservation = {...reservationTemplate}; 
-    reservation.name = name; 
-    reservation.phone = phone; 
-    reservation.email = email;
-    reservation.displayName = name + ': ' + email
-    reservation.seatNumber = seatNumber++;
-    reservation.dateOfBirth = dateOfBirth;
-    reservation.id = `${Math.floor(Math.random() * 100)}-${reservation.seatNumber}`;
-    reservations.push(reservation);
-    
-    let storedReservations = getReservations(); // get previously stored reservations
-    // If there are stored reservations we parse the array of reservations otherwise we intialize an empty array
-    storedReservations.push(reservation); 
-    localStorage.setItem("app-reservations", JSON.stringify(storedReservations)); // adding the current reservations to the local storage
-    appSettings.seatNumber = seatNumber; // updating available seat number for next passenger
-    saveSettings(appSettings); 
-}
-
-
-const displayPassengers = () => {
-    appSettings.displayPassengers = true; 
-    saveSettings(appSettings);
-    window.location.href = "display-passengers.html"
-};
-
-// If display passengers is clicked on the main page this will run
-if(showPassengerList(appSettings)){
-    console.log(showPassengerList(appSettings));
-    const tbody = document.getElementById("tbody"); // this is where I'll append a new entry (new passenger detail)
-    const reservations = new LinkedList(); // empty alphabetized linked list
-    // fix the reservations (make it a function)
-    const storedReservations = getReservations();
-    storedReservations.forEach((res)=>{reservations.push(res);}); // putting all reservations into the linked list so that they can be ordered (names)
-    
-    // filling the table with the passenger details
-    reservations.forEach((node)=>{
-        const reservation = node.data;
-        const htmlContent = `
-        <tr>
-            <td class="tw-border-s">${reservation.name}</td>
-            <td>${reservation.email}</td>
-            <td>${reservation.seatNumber}</td>
-        </tr>
-        `;
-        tbody.insertAdjacentHTML("beforeend", htmlContent);
-    });
-
-    appSettings.displayPassengers = false; // resetting this value so that this block of code doesn't run on every page
-    saveSettings(appSettings); 
 }

@@ -9,14 +9,14 @@ body{
 .hover-highlight li{
     /* hover-highlight should be placed on a ul element */
     cursor: pointer;
-    border-radius: 0.25rem;
+    border-radius: 0.1rem;
     padding: 0.5rem; 
     background:#fff; 
   }
   
   .hover-highlight li:hover {
     /* background-color: rgb(14 165 233 / 0.1); */
-    outline:2px solid rgb(14 165 233 / 1);
+    outline:2px solid rgb(14 165 233 / 0.3);
   }
 
 
@@ -62,4 +62,20 @@ body{
 a{
   text-decoration:none;
   color:#000; 
+}
+
+
+/* DISPLAY PASSENGERS */
+.tbody{
+  /* border-top-color: rgb(11 64 156 / 0.5) !important; */
+  border-top-color: rgb(203 213 225) !important;
+}
+
+.tw-border-s{
+  border-inline-start-width: 2px !important;
+}
+
+tbody tr:hover .tw-border-s {
+  --tw-border-opacity: 1 !important;
+  border-inline-start-color: rgb(253 190 52 / var(--tw-border-opacity)) !important;
 }
