@@ -12,6 +12,8 @@ body{
     border-radius: 0.1rem;
     padding: 0.5rem; 
     background:#fff; 
+    /* outline:2px solid black; */
+    margin-bottom:0 !important;
   }
   
   .hover-highlight li:hover {
@@ -78,4 +80,27 @@ a{
 tbody tr:hover .tw-border-s {
   --tw-border-opacity: 1 !important;
   border-inline-start-color: rgb(253 190 52 / var(--tw-border-opacity)) !important;
+}
+
+
+.images{
+  /* margin-top:70px; */
+  display:flex; 
+  justify-content:space-between;
+  flex-wrap:wrap;
+}
+
+.images .image-container{
+  width:31%;
+  margin-bottom:1rem;
+}
+
+.stick{
+  height: 15px;
+  width:1.5px;
+  background:rgb(var(--primary-color));
+  position:relative; 
+  left:10px;
+  margin-bottom:0.5rem;
+  margin-top:0.5rem;
 }

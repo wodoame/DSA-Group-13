@@ -72,13 +72,13 @@ class LinkedList{
     
     // This method adds values in ascending sorted order
     push(obj){
-        const newNode = new ListNode(obj.displayName); // node string value is the email
+        const newNode = new ListNode(obj.displayName); // node string value is the name + email of the new user
         newNode.data = obj;
         if(this.isEmpty()){ // this the list is empty we make the new node the first node
             this.firstNode = newNode; 
         }else{
-            let currentNode = this.firstNode; 
-            let previousNode = undefined;
+            let currentNode = this.firstNode; // we start the comparison from the first node
+            let previousNode = undefined; // There is no previous node
             while(currentNode){
                 if(obj.displayName <= currentNode.value){
                     if(previousNode){ // if theres a previous node we insert in-between the previous and current nodes
@@ -89,13 +89,13 @@ class LinkedList{
                         newNode.nextNode = currentNode;
                     }
                     break; // we break out of the loop to prevent an infinite loop
-                }else{ // if the value if less than the current value we move on
+                }else{ // if the value if greater than the current value we move on
                     previousNode = currentNode;
                     currentNode = currentNode.nextNode; 
                 }
             }
 
-            if(!currentNode){ // if the currentNode is undefined it means that we are at the end of the list so we add it to end of the list
+            if(!currentNode){ // if the currentNode is undefined it means that we are at the end of the list so we add the new node to end of the list
                 previousNode.nextNode = newNode;
             }
 
@@ -146,6 +146,8 @@ const loadSettings = () => {
     return settings ? JSON.parse(settings): {
         seatNumber: 1,
         displayPassengers: false,  
+        availableSeats: [], 
+        seatLimit: 15 // maximum number of reservations
     };
 };
 
@@ -161,6 +163,11 @@ const getReservations = () => {
     const reservations = localStorage.getItem('app-reservations');
     return reservations ? JSON.parse(reservations): [];
 };
+
+const saveReservations = (reservations)=>{
+    localStorage.setItem("app-reservations", JSON.stringify(reservations));
+};
+
 // NOTE: app settings have already been parsed on each page reload and is ready to be used
 let appSettings = loadSettings();
 let seatNumber = appSettings.seatNumber; // get the current available seat number from the app settings
@@ -171,44 +178,66 @@ const reservationSuccessful = ()=>{
     document.getElementById("success-button").click();
 };
 
+const repeatedEmail = (email) => {
+    let isRepeated = false
+    const reservations = getReservations();
+    reservations.forEach((res)=>{
+        if(res.email == email){
+            isRepeated = true;
+            return; // premature exit
+        }
+    });
+
+    return isRepeated;
+};
+
 const validateForm = (form) => {
-    let isValid = true;
     for (let i = 0; i < form.elements.length; i++) {
         if (!form.elements[i].checkValidity()) {
-            isValid = false;
-            break;
+            return false;
         }
     }
-    return isValid;
+    return true
 };
+
+// pushing the current reservation details into the local storage
 const pushDetails = () => {
-    const form = document.getElementById("reservation-form");
+    const form = document.getElementById("reservation-form"); // the form element in the html
     if(validateForm(form)){
         const name = document.getElementById("name").value; // gets the value of the input field with name 'id'
         const phone = document.getElementById("phone-number").value;
         const email = document.getElementById("email-address").value; 
-        const dateOfBirth = document.getElementById("date-of-birth").value;
-        const reservations = [];
+        const userPassword = document.getElementById("confirm-password").value;
+        // const reservations = []; // storing the current reservation
         // console.log(name, phone, email);
-
+        if(repeatedEmail(email)){
+            alert("This email has already been used.");
+            return;
+        }
+        // if(repeatedEmail(email)){
+        //     return; // premature exit
+        // }
         const reservation = {...reservationTemplate}; 
+        const availableSeats = appSettings.availableSeats; // seats avaiblable due to canceled resevations
+
+        // setting the current reservation details of the new user
         reservation.name = name; 
         reservation.phone = phone; 
         reservation.email = email;
-        reservation.displayName = name + ': ' + email
-        reservation.seatNumber = seatNumber++;
-        reservation.dateOfBirth = dateOfBirth;
+        reservation.displayName = name + ': ' + email // this property is used for the alphabetical comparison (name + email)
+        reservation.seatNumber = availableSeats.length > 0 ? availableSeats.pop() : seatNumber++; // an available seat is given otherwise a new seat is given
+        reservation.userPassword = userPassword; 
         reservation.dateBooked = new Date(); 
         reservation.id = `${Math.floor(Math.random() * 100)}-${reservation.seatNumber}`;
-        reservations.push(reservation);
         
-        let storedReservations = getReservations(); // get previously stored reservations
+        const storedReservations = getReservations(); // get previously stored reservations
         // If there are stored reservations we parse the array of reservations otherwise we intialize an empty array
         storedReservations.push(reservation); 
-        localStorage.setItem("app-reservations", JSON.stringify(storedReservations)); // adding the current reservations to the local storage
+        saveReservations(storedReservations) // adding the current reservations to the local storage
         appSettings.seatNumber = seatNumber; // updating available seat number for next passenger
         saveSettings(appSettings); 
-        reservationSuccessful();
+        reservationSuccessful(); // drop down menu
+        // document.getElementById('false-submit').click();
     }else{document.getElementById('false-submit').click();}
     
 }
@@ -222,11 +251,10 @@ const displayPassengers = () => {
 
 // If display passengers is clicked on the main page this will run
 if(showPassengerList(appSettings)){
-    console.log(showPassengerList(appSettings));
     const tbody = document.getElementById("tbody"); // this is where I'll append a new entry (new passenger detail)
     const reservations = new LinkedList(); // empty alphabetized linked list
     // fix the reservations (make it a function)
-    const storedReservations = getReservations();
+    const storedReservations = getReservations(); // getting all reservations stored inside the local storage
     storedReservations.forEach((res)=>{reservations.push(res);}); // putting all reservations into the linked list so that they can be ordered (names)
     
     // filling the table with the passenger details
@@ -249,34 +277,85 @@ if(showPassengerList(appSettings)){
 }
 
 const searchReservations = () => {
-    const displayLocation = document.getElementById("display-location"); 
+    // sequential search
+    const displayLocation = document.getElementById("display-location"); // where the search appears in the html
     displayLocation.innerHTML = " "; // clear previous search results
     const query = document.getElementById("search-input").value; // query from the search input
     const filter = "name"; // filter we are searching by (name, email, id, ....)
     const matches = new LinkedList(); // new linked list to collect matches
-    const storedReservations = getReservations();
+    const storedReservations = getReservations(); // all the reservations we currently have in the local storage
+    
     storedReservations.forEach((res)=>{
-        if(res[filter].toLowerCase().includes(query.toLowerCase())){
-            matches.push(res);
+        // console.log(res);
+        if(query && res[filter].toLowerCase().includes(query.toLowerCase())){
+            matches.push(res); // pushing all reservations that contain the query
         }
     });
-    matches.display();
 
+    // matches.display();
+
+    // looping through the linked list which has ordered the search results
+    let htmlContent;
     matches.forEach((res, index)=>{
-        const htmlContent = `
+        // html to be inserted inside the html document to represent a search result
+        let stick = ' <div class="stick"></div>'; // the line design that separates the search results
+        if(index == matches.size - 1)stick=""; // if we are on the last item we don't need a line design
+        htmlContent = `
         <li class="bg-white p-3 shadow-sm mb-2 d-flex gap-3">
             <span class="text-muted" style="font-style:italic;">${index + 1}</span>
             <span class="fw-bold">${res.value}</span>
         </li>
+        ${stick}
         `;
-       
+        
+        console.log(matches.size);
         displayLocation.insertAdjacentHTML("beforeend", htmlContent);
     });
+
+    if(matches.size == 0){
+      htmlContent = `
+      <li class="bg-white p-3 shadow-sm mb-2 fw-bold text-center">
+        NO MATCHES FOUND
+    </li>
+      `;
+      displayLocation.insertAdjacentHTML("beforeend", htmlContent);
+    }
+
+
 }
 
-
+const showModal = ()=>{
+    const form = document.getElementById("cancel-reservation-form");
+    if(validateForm(form)){
+        document.getElementById("ask-confirmation").click();
+    }else{
+        document.getElementById("false-submit").click();
+    }
+};
 const cancelReservation = () => {
-
+  const userPassword = document.getElementById("password").value;
+  const email = document.getElementById("email-address").value;
+  const storedReservations = getReservations(); 
+  const filteredReservations = []; // this will store the reservations excluding the canceled one
+  let userFound = false;
+  storedReservations.forEach((res)=>{
+    console.log(res.userPassword);
+    if(res.userPassword == userPassword && res.email == email){
+        userFound = true;
+        appSettings.availableSeats.push(res.seatNumber);  // reserved seat is now available
+        saveSettings(appSettings);
+    }else{
+        filteredReservations.push(res);
+    }
+  });
+  saveReservations(filteredReservations);
+  if(userFound){
+    alert("deleted successfully");
+  }
+  else{
+    alert("No user with those credentials");
+  }
+  
 };
 
 
@@ -301,15 +380,15 @@ const generateSidebar = () => {
                     <div class="icon">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="m21.743 12.331-9-10c-.379-.422-1.107-.422-1.486 0l-9 10a.998.998 0 0 0-.17 1.076c.16.361.518.593.913.593h2v7a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-4h4v4a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-7h2a.998.998 0 0 0 .743-1.669z"></path></svg>                   
                     </div>
-                    <div class="text">Home</div>
+                    <div class="text fw-bold">Home</div>
                 </a>
             </li>
             <li class="nav-link">
-                <a href="">
+                <a href="cancel-reservation.html">
                     <div class="icon">
                     <svg fill="#000000" viewBox="0 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" width="24" height="24"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>cancel</title> <path d="M10.771 8.518c-1.144 0.215-2.83 2.171-2.086 2.915l4.573 4.571-4.573 4.571c-0.915 0.915 1.829 3.656 2.744 2.742l4.573-4.571 4.573 4.571c0.915 0.915 3.658-1.829 2.744-2.742l-4.573-4.571 4.573-4.571c0.915-0.915-1.829-3.656-2.744-2.742l-4.573 4.571-4.573-4.571c-0.173-0.171-0.394-0.223-0.657-0.173v0zM16 1c-8.285 0-15 6.716-15 15s6.715 15 15 15 15-6.716 15-15-6.715-15-15-15zM16 4.75c6.213 0 11.25 5.037 11.25 11.25s-5.037 11.25-11.25 11.25-11.25-5.037-11.25-11.25c0.001-6.213 5.037-11.25 11.25-11.25z"></path> </g></svg>                    
                         </div>
-                    <div class="text text-nowrap">Cancel Reservations</div>
+                    <div class="text text-nowrap fw-bold">Cancel Reservations</div>
                 </a>
             </li>
             <li class="nav-link">
@@ -317,7 +396,7 @@ const generateSidebar = () => {
                     <div class="icon">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"></path></svg>                   
                         </div>
-                    <div class="text">Search</div>
+                    <div class="text fw-bold">Search</div>
                 </a>
             </li>
             <li class="nav-link">
@@ -325,7 +404,7 @@ const generateSidebar = () => {
                     <div class="icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M9.5 12c2.206 0 4-1.794 4-4s-1.794-4-4-4-4 1.794-4 4 1.794 4 4 4zm1.5 1H8c-3.309 0-6 2.691-6 6v1h15v-1c0-3.309-2.691-6-6-6z"></path><path d="M16.604 11.048a5.67 5.67 0 0 0 .751-3.44c-.179-1.784-1.175-3.361-2.803-4.44l-1.105 1.666c1.119.742 1.8 1.799 1.918 2.974a3.693 3.693 0 0 1-1.072 2.986l-1.192 1.192 1.618.475C18.951 13.701 19 17.957 19 18h2c0-1.789-.956-5.285-4.396-6.952z"></path></svg>
                     </div>
-                    <div class="text text-nowrap">Display Passengers</div>
+                    <div class="text text-nowrap fw-bold">Display Passengers</div>
                 </a>
             </li>
         
@@ -337,3 +416,26 @@ const generateSidebar = () => {
 };
 
 generateSidebar();
+
+
+
+const checkPassword = () => {
+    const choosePassword = document.getElementById("choose-password").value;
+    const confirmPasswordInput = document.getElementById("confirm-password");
+    const confirmPassword = confirmPasswordInput.value;
+    if(choosePassword == "" || confirmPassword == ""){
+        // remove valid or invalid styles
+        confirmPasswordInput.classList.remove("is-invalid");
+        confirmPasswordInput.classList.remove("is-valid");
+        return; // premature exit
+    }
+
+    if(choosePassword == confirmPassword){
+        confirmPasswordInput.classList.remove("is-invalid");
+        confirmPasswordInput.classList.add("is-valid");
+    }
+    else{
+        confirmPasswordInput.classList.remove("is-valid");
+        confirmPasswordInput.classList.add("is-invalid");
+    }
+};
