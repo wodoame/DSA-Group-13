@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="./css/base-preflight.css">
     <link rel="stylesheet" href="./css/bootstrap.min.css">
     <link rel="stylesheet" href="./css/output.css">
+    <link rel="stylesheet" href="./css/sidebar.css">
     <style>
         @font-face {
             font-family: "Poppins-Regular";
@@ -19,39 +20,65 @@
     <title>Document</title>
 </head>
 <body>
+   <nav class="sidebar close shadow" id="sidebar">
+   </nav>
      <!-- Flight booking form -->
-     <form class="container mt-5 mb-5">
+     <form class="px-5 mt-5" id="reservation-form" style="width:calc(100% - 70px); position:relative; left:70px;">
         <h1 class="mb-4">TICKET RESERVATION</h1>
         <div class="bg-white p-3 shadow-sm" style="border-radius:0.25rem;">
             <div class="split">
                 <div class="flex-grow-1">
                     <label for="">Name</label>
-                    <input type="text" id="name" class="form-control standard-input">
+                    <input type="text" id="name" required class="form-control standard-input">
                 </div>
                 <div class="flex-grow-1">
                     <label for="">Phone Number</label>
-                    <input type="text" id="phone-number" class="form-control standard-input">
+                    <input type="text" id="phone-number" required class="form-control standard-input">
                 </div>
             </div>
             <div class="split">
                 <div class="flex-grow-1">
                     <label for="">Email Address</label>
-                    <input type="email" id="email-address" class="form-control standard-input">
+                    <input type="email" id="email-address" required class="form-control standard-input">
                 </div>
             </div>
             <div class="split">
                 <div class="flex-grow-1">
                     <label for="">Date of Birth</label>
-                    <input type="date" id="date-of-birth" class="form-control standard-input">
+                    <input type="date" id="date-of-birth" required class="form-control standard-input">
                 </div>
             </div>
             <div class="mt-3">
                 <button type="button" class="btn btn-primary shadow-sm general-button" onclick="pushDetails()">
                     <span>Reserve Ticket</span>
                 </button>
-            </div>
+                <button type="submit" class="visually-hidden" id="false-submit">
+                    False submit button
+                </button>
         </div>
     </form>
+
+    
+      
+      <!-- modal -->
+    <div class="modal fade" tabindex="-1" id="exampleModal">
+        <div class="modal-dialog  modal-dialog-centered">
+          <div class="modal-content border-0" style="background:transparent;">
+            <div>
+                <div class="alert alert-success text-center fw-bold d-flex gap-2 justify-content-center">
+                    <span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="m10 15.586-3.293-3.293-1.414 1.414L10 18.414l9.707-9.707-1.414-1.414z"></path></svg></span>
+                    <span>Reservation Successful</span>
+                </div>
+            </div>
+            <div class="visually-hidden">
+                <button type="button" class="btn btn-primary" id="success-button" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                    Launch demo modal
+                </button>
+            </div>
+          </div>
+        </div>
+      </div>
     <script src="./js/app.js"></script>
+    <script src="./js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

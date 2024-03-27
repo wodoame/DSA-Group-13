@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="./css/base-preflight.css">
     <link rel="stylesheet" href="./css/bootstrap.min.css">
     <link rel="stylesheet" href="./css/output.css">
+    <link rel="stylesheet" href="./css/sidebar.css">
     <style>
         @font-face {
             font-family: "Poppins-Regular";
@@ -19,15 +20,19 @@
     <title>Document</title>
 </head>
 <body>
-    <div class="container mt-5">
+    <nav class="sidebar close shadow" id="sidebar">
+   </nav>
+    <div class="px-5 mt-5" id="main" style="width:calc(100% - 70px); position:relative; left:70px;">
         <h1 class="mb-4">PASSENGER LIST</h1>
          <div class="p-4 shadow-sm bg-white">
              <table class="table table-bordered">
                 <thead>
                     <tr>
-                        <th class="tw-border-s">Name</th>
+                        <th class="fw-bold tw-border-s">#</th>
+                        <th>Name</th>
                         <th>Email</th>
                         <th>Seat Number</th>
+                        <th>Date Booked</th>
                     </tr>
                 </thead>
                 <tbody class="table-group-divider tbody" id="tbody">
