@@ -174,7 +174,31 @@ let seatNumber = appSettings.seatNumber; // get the current available seat numbe
 const reservationTemplate = {};
 
 
-const reservationSuccessful = ()=>{
+const reservationSuccessful = (reservation)=>{
+    const resDetailsLocation = document.getElementById("reservation-details");
+    const htmlContent = `
+    <div class="d-flex gap-2 mb-2">
+    <span class="text-muted">NAME</span>
+    <span class="fw-bold">${reservation.name}</span>
+    </div>
+    <div class="d-flex gap-2 mb-2">
+        <span class="text-muted">EMAIL</span>
+        <span class="fw-bold">${reservation.email}</span>
+    </div>
+    <div class="d-flex gap-2 mb-2">
+        <span class="text-muted">RESERVATION ID</span>
+        <span class="fw-bold">${reservation.id}</span>
+    </div>
+    <div class="d-flex gap-2 mb-2">
+        <span class="text-muted">SEAT NUMBER</span>
+        <span class="fw-bold">${reservation.seatNumber}</span>
+    </div>
+    <div class="d-flex gap-2 mb-2">
+        <span class="text-muted text-nowrap">DATE BOOKED</span>
+        <span class="fw-bold text-nowrap text-truncate">${reservation.dateBooked}</span>
+    </div>
+    `;
+    resDetailsLocation.insertAdjacentHTML("beforeend", htmlContent);
     document.getElementById("success-button").click();
 };
 
@@ -200,6 +224,29 @@ const validateForm = (form) => {
     return true
 };
 
+const clearForm = (form) => {
+    for (let i = 0; i < form.elements.length; i++) {
+        form.elements[i].value = "";
+    }
+};
+
+
+const formatName = (sentence) => {
+    // Split the sentence into an array of words
+    let words = sentence.split(" ");
+    
+    // Iterate over each word
+    for (let i = 0; i < words.length; i++) {
+        let word = words[i];
+
+        // Capitalize the first letter of each word and concatenate with the rest of the word
+        words[i] = word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    }
+
+    // Join the capitalized words back into a sentence
+    return words.join(" ");
+}
+
 // pushing the current reservation details into the local storage
 const pushDetails = () => {
     const form = document.getElementById("reservation-form"); // the form element in the html
@@ -221,7 +268,7 @@ const pushDetails = () => {
         const availableSeats = appSettings.availableSeats; // seats avaiblable due to canceled resevations
 
         // setting the current reservation details of the new user
-        reservation.name = name; 
+        reservation.name = formatName(name); 
         reservation.phone = phone; 
         reservation.email = email;
         reservation.displayName = name + ': ' + email // this property is used for the alphabetical comparison (name + email)
@@ -236,7 +283,10 @@ const pushDetails = () => {
         saveReservations(storedReservations) // adding the current reservations to the local storage
         appSettings.seatNumber = seatNumber; // updating available seat number for next passenger
         saveSettings(appSettings); 
-        reservationSuccessful(); // drop down menu
+        reservationSuccessful(reservation); // drop down menu
+        clearForm(form); // clear all form fields
+        document.getElementById("confirm-password").classList.remove("is-invalid");
+        document.getElementById("confirm-password").classList.remove("is-valid");
         // document.getElementById('false-submit').click();
     }else{document.getElementById('false-submit').click();}
     
@@ -281,7 +331,7 @@ const searchReservations = () => {
     const displayLocation = document.getElementById("display-location"); // where the search appears in the html
     displayLocation.innerHTML = " "; // clear previous search results
     const query = document.getElementById("search-input").value; // query from the search input
-    const filter = "name"; // filter we are searching by (name, email, id, ....)
+    const filter = document.getElementById("filter").value; // filter we are searching by (name, email, id, ....)
     const matches = new LinkedList(); // new linked list to collect matches
     const storedReservations = getReservations(); // all the reservations we currently have in the local storage
     
@@ -332,6 +382,11 @@ const showModal = ()=>{
         document.getElementById("false-submit").click();
     }
 };
+
+const cancelSuccess = () => {
+    document.getElementById("cancel-success").click();
+    setTimeout(()=>{document.getElementById("close-button").click()}, 1000)
+};
 const cancelReservation = () => {
   const userPassword = document.getElementById("password").value;
   const email = document.getElementById("email-address").value;
@@ -350,7 +405,8 @@ const cancelReservation = () => {
   });
   saveReservations(filteredReservations);
   if(userFound){
-    alert("deleted successfully");
+    cancelSuccess();
+    clearForm(document.getElementById("cancel-reservation-form"));
   }
   else{
     alert("No user with those credentials");
